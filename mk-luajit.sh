@@ -9,9 +9,11 @@ NDKABI=${NDKABI:-14} # Android 4.0+
 DEST=$(cd "$(dirname "$0")" && pwd)/jni/luajit-build/$1
 # might be linux-x86_64 or darwin-x86-64
 HOST_ARCH="*"
-
 function check_NDK() {
-    [[ -n $NDK ]] || export NDK=/opt/android-ndk
+    if [ -n $NDK ]; then
+        export NDK=$ANDROID_NDK_ROOT
+    fi
+    #/opt/android-ndk
     if [ ! -d "$NDK" ]; then
         echo 'NDK not found. Please set NDK environment variable and have it point to the NDK dir.'
         exit 1
@@ -19,9 +21,11 @@ function check_NDK() {
 
     echo "Using NDKABI ${NDKABI}."
 
-    NDKVER=$(grep -oP 'r\K([0-9]+)(?=[a-z])' ${NDK}/CHANGELOG.md | head -1)
+    NDKVER=$(grep -oE 'r([0-9]+)(?=[a-z])' ${NDK}/CHANGELOG.md | head -1)
+
+    [ -z "NDKVER" ] &&  NDKVER='(empty)'
     echo "Detected NDK version ${NDKVER}..."
-    if [ "$NDKVER" -lt 15 ]; then
+    if [[ "$NDKVER" -lt 15 ]]; then
         echo 'NDK not of the right version, please update to NDK version 15 or higher.'
         exit 1
     fi
